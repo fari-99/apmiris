@@ -9,8 +9,8 @@ import (
 
 	"github.com/kataras/iris/v12"
 
-	"go.elastic.co/apm"
-	"go.elastic.co/apm/module/apmhttp"
+	"go.elastic.co/apm/module/apmhttp/v2"
+	"go.elastic.co/apm/v2"
 )
 
 // Middleware returns a new Kataras/Iris middleware handler for tracing
@@ -24,7 +24,7 @@ import (
 func Middleware(engine *iris.Application, getUserData GetUserData, opts ...Option) iris.Handler {
 	m := &middleware{
 		engine:      engine,
-		tracer:      apm.DefaultTracer,
+		tracer:      apm.DefaultTracer(),
 		getUserData: getUserData,
 	}
 
@@ -93,7 +93,7 @@ func (m *middleware) handle(irisCtx iris.Context) {
 		requestName = apmhttp.UnknownRouteRequestName(irisCtx.Request())
 	}
 
-	tx, req := apmhttp.StartTransaction(m.tracer, requestName, irisCtx.Request())
+	tx, _, req := apmhttp.StartTransactionWithBody(m.tracer, requestName, irisCtx.Request())
 	irisCtx.ResetRequest(req)
 	defer tx.End()
 
